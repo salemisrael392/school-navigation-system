@@ -77,4 +77,44 @@ export interface EmergencyContact {
   icon: 'ambulance' | 'shield' | 'flame' | 'phone';
 }
 
-export type TabType = 'explore' | 'navigate' | 'directory' | 'freshers';
+export type DayOfWeek =
+  | 'Monday'
+  | 'Tuesday'
+  | 'Wednesday'
+  | 'Thursday'
+  | 'Friday'
+  | 'Saturday';
+
+export interface ClassScheduleItem {
+  id: string;
+  subjectName: string;
+  courseCode: string;
+  day: DayOfWeek;
+  startTime: string;
+  endTime: string;
+  buildingId: string;
+  buildingName: string;
+  room: string;
+  facultyName?: string;
+  color?: string;
+}
+
+export type NotificationCategory = 'closure' | 'event' | 'schedule' | 'advisory';
+
+export interface CampusNotification {
+  id: string;
+  title: string;
+  body: string;
+  category: NotificationCategory;
+  priority: 'urgent' | 'high' | 'normal';
+  timestamp: number;
+  timeFormatted: string;
+  buildingId?: string;
+  buildingName?: string;
+  locationTag?: string;
+  actionLabel?: string;
+  read: boolean;
+  source: 'location_proximity' | 'schedule_conflict' | 'campus_broadcast' | 'simulated';
+}
+
+export type TabType = 'explore' | 'navigate' | 'schedule' | 'directory' | 'freshers';

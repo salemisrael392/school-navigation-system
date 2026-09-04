@@ -1,6 +1,7 @@
 import React from 'react';
 import { X, MapPin, Layers, Phone, User } from 'lucide-react';
 import { Building } from '../types';
+import { triggerHaptic } from '../utils/haptics';
 
 interface PhotoGalleryModalProps {
   building: Building;
@@ -96,6 +97,7 @@ export const PhotoGalleryModal: React.FC<PhotoGalleryModalProps> = ({
         <div className="p-4 bg-slate-50 border-t border-slate-200 flex items-center gap-2">
           <button
             onClick={() => {
+              triggerHaptic('start_navigation');
               onClose();
               onStartNavigation();
             }}

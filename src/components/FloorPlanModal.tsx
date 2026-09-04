@@ -49,26 +49,26 @@ export const FloorPlanModal: React.FC<FloorPlanModalProps> = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 bg-black/60 backdrop-blur-xs">
       <div
         id="modal-floor-plan"
-        className="bg-white rounded-3xl w-full max-w-lg max-h-[90vh] overflow-hidden shadow-2xl border border-slate-200 flex flex-col animate-in fade-in zoom-in-95 duration-200"
+        className="bg-white rounded-3xl w-full max-w-lg md:max-w-3xl max-h-[90vh] overflow-hidden shadow-2xl border border-slate-200 flex flex-col animate-in fade-in zoom-in-95 duration-200"
       >
         {/* Modal Header */}
-        <div className="px-4 py-3.5 border-b border-slate-100 flex items-center justify-between bg-[#f8f9ff]">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-xl bg-[#000923] text-white flex items-center justify-center">
-              <Layers className="w-4 h-4" />
+        <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-[#f8f9ff]">
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-xl bg-[#000923] text-white flex items-center justify-center shadow-xs">
+              <Layers className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-[#000923]">
+              <h3 className="text-sm sm:text-base font-bold text-[#000923]">
                 {building.shortName} • Floor Plans
               </h3>
-              <p className="text-[11px] text-slate-500 font-medium">
+              <p className="text-xs text-slate-500 font-medium">
                 {currentPlan ? currentPlan.description : building.subtitle}
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+            className="p-2 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -76,7 +76,7 @@ export const FloorPlanModal: React.FC<FloorPlanModalProps> = ({
 
         {/* Floor Switcher Tabs */}
         {floorPlans.length > 0 && (
-          <div className="px-4 py-2 bg-slate-50 border-b border-slate-200/80 flex gap-2 overflow-x-auto no-scrollbar">
+          <div className="px-5 py-2.5 bg-slate-50 border-b border-slate-200/80 flex gap-2 overflow-x-auto no-scrollbar">
             {floorPlans.map((fp) => (
               <button
                 key={fp.levelNumber}
@@ -84,7 +84,7 @@ export const FloorPlanModal: React.FC<FloorPlanModalProps> = ({
                   setSelectedLevel(fp.levelNumber);
                   setSelectedRoom(null);
                 }}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
                   selectedLevel === fp.levelNumber
                     ? 'bg-[#000923] text-white shadow-xs'
                     : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'
@@ -97,10 +97,10 @@ export const FloorPlanModal: React.FC<FloorPlanModalProps> = ({
         )}
 
         {/* Floor Blueprint Canvas */}
-        <div className="p-4 flex-1 overflow-y-auto">
+        <div className="p-4 sm:p-5 flex-1 overflow-y-auto">
           {currentPlan ? (
             <div>
-              <div className="relative w-full h-[240px] bg-[#f8f9fc] border-2 border-dashed border-slate-300 rounded-2xl p-2 overflow-hidden shadow-inner flex items-center justify-center">
+              <div className="relative w-full h-[240px] sm:h-[320px] md:h-[380px] bg-[#f8f9fc] border-2 border-dashed border-slate-300 rounded-2xl p-2 overflow-hidden shadow-inner flex items-center justify-center">
                 <svg
                   viewBox="0 0 100 100"
                   className="w-full h-full"

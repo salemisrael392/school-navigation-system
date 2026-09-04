@@ -17,6 +17,7 @@ import {
   Footprints,
 } from 'lucide-react';
 import { Building, Facility } from '../types';
+import { triggerHaptic } from '../utils/haptics';
 
 interface LocationBottomSheetProps {
   building: Building;
@@ -58,21 +59,19 @@ export const LocationBottomSheet: React.FC<LocationBottomSheetProps> = ({
   return (
     <div
       id="bottom-sheet-location-card"
-      className="bg-white rounded-t-3xl border-t border-[#e2d8c3] shadow-lg -mt-3 relative z-20 px-4 pt-2.5 pb-4 transition-all"
+      className="bg-white rounded-3xl border border-[#e2d8c3] shadow-xs relative z-20 px-4 sm:px-5 pt-4 pb-4 transition-all"
     >
-      {/* Pull Handle Bar */}
-      <div className="flex justify-center mb-2.5">
-        <div className="w-10 h-1 rounded-full bg-slate-300" />
+      {/* Pull Handle Bar (visible only on mobile viewports) */}
+      <div className="flex md:hidden justify-center mb-2.5">
+        <div className="w-10 h-1 rounded-full bg-slate-200" />
       </div>
 
       {/* Building Header Row */}
       <div className="flex items-start justify-between gap-3 mb-3">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2 flex-wrap mb-1">
-            <h2 className="text-base sm:text-lg font-bold text-[#000923] tracking-tight leading-tight truncate">
-              {building.name.length > 20
-                ? `${building.name.slice(0, 18)} ...`
-                : building.name}
+            <h2 className="text-base sm:text-lg font-bold text-[#000923] tracking-tight leading-tight">
+              {building.name}
             </h2>
             {building.badge && (
               <span className="px-2 py-0.5 rounded-md bg-[#bfd2fd] text-[#0e2044] text-[11px] font-bold tracking-tight">
@@ -80,7 +79,7 @@ export const LocationBottomSheet: React.FC<LocationBottomSheetProps> = ({
               </span>
             )}
           </div>
-          <p className="text-xs text-slate-500 font-medium truncate">
+          <p className="text-xs sm:text-sm text-slate-500 font-medium">
             {building.subtitle}
           </p>
         </div>
@@ -187,7 +186,10 @@ export const LocationBottomSheet: React.FC<LocationBottomSheetProps> = ({
         {/* Start Navigation Button */}
         <button
           id="btn-start-navigation"
-          onClick={onStartNavigation}
+          onClick={() => {
+            triggerHaptic('start_navigation');
+            onStartNavigation();
+          }}
           className="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-[#000923] hover:bg-[#0e2044] text-white text-xs sm:text-sm font-bold shadow-md transition-all active:scale-98 cursor-pointer"
         >
           <Navigation className="w-4 h-4 fill-white" />

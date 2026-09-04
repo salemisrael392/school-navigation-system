@@ -1,6 +1,16 @@
 import React, { useState } from 'react';
-import { Compass, Crosshair, Layers, Plus, Minus, PhoneCall, Check } from 'lucide-react';
+import {
+  Compass,
+  Crosshair,
+  Layers,
+  Plus,
+  Minus,
+  PhoneCall,
+  Check,
+  Navigation2,
+} from 'lucide-react';
 import { Building } from '../types';
+import { triggerHaptic } from '../utils/haptics';
 
 interface CampusMapProps {
   selectedBuilding: Building;
@@ -8,6 +18,17 @@ interface CampusMapProps {
   onOpenSOS: () => void;
   userLocationName: string;
   onCycleUserLocation: () => void;
+  isNavigatingLive?: boolean;
+  liveStepIndex?: number;
+  totalSteps?: number;
+  highlightedNextClass?: {
+    buildingId: string;
+    subject: string;
+    room: string;
+    time: string;
+    courseCode?: string;
+  } | null;
+  onFocusNextClass?: () => void;
 }
 
 type MapLayer = 'architectural' | '3d' | 'satellite' | 'heatmap';
@@ -18,16 +39,28 @@ export const CampusMap: React.FC<CampusMapProps> = ({
   onOpenSOS,
   userLocationName,
   onCycleUserLocation,
+  isNavigatingLive = false,
+  liveStepIndex = 0,
+  totalSteps = 5,
+  highlightedNextClass = null,
+  onFocusNextClass,
 }) => {
   const [zoomLevel, setZoomLevel] = useState<number>(1);
   const [activeLayer, setActiveLayer] = useState<MapLayer>('architectural');
   const [showLayerMenu, setShowLayerMenu] = useState<boolean>(false);
   const [compassHeading, setCompassHeading] = useState<number>(0);
+  const [selectedRouteType, setSelectedRouteType] = useState<'primary' | 'alternate'>('primary');
 
   const handleZoomIn = () => setZoomLevel((z) => Math.min(z + 0.2, 1.8));
   const handleZoomOut = () => setZoomLevel((z) => Math.max(z - 0.2, 0.8));
   const handleResetOrientation = () => {
     setCompassHeading((h) => (h === 0 ? 45 : 0));
+    triggerHaptic('tap');
+  };
+
+  const handleSOSClick = () => {
+    triggerHaptic('sos_trigger');
+    onOpenSOS();
   };
 
   const isBlockASelected = selectedBuilding.id === 'srix-block-a';
@@ -37,20 +70,147 @@ export const CampusMap: React.FC<CampusMapProps> = ({
   const isSportsSelected = selectedBuilding.id === 'sports-complex';
   const isHostelSelected = selectedBuilding.id === 'hostels-mess';
 
+  // Dynamic Google Maps style Route Coordinates based on destination
+  const getDestinationPinCoords = (): { x: number; y: number } => {
+    switch (selectedBuilding.id) {
+      case 'centenary-bhavan':
+        return { x: 250, y: 120 };
+      case 'central-library':
+        return { x: 382, y: 215 };
+      case 'block-b':
+        return { x: 112, y: 310 };
+      case 'sports-complex':
+        return { x: 380, y: 310 };
+      case 'hostels-mess':
+        return { x: 380, y: 385 };
+      case 'srix-block-a':
+      default:
+        return { x: 115, y: 215 };
+    }
+  };
+
+  const destCoords = getDestinationPinCoords();
+
+  const getNextClassPinCoords = (bId: string): { x: number; y: number } => {
+    switch (bId) {
+      case 'centenary-bhavan':
+        return { x: 250, y: 72 };
+      case 'central-library':
+        return { x: 382, y: 165 };
+      case 'block-b':
+        return { x: 112, y: 260 };
+      case 'sports-complex':
+        return { x: 380, y: 265 };
+      case 'hostels-mess':
+        return { x: 380, y: 350 };
+      case 'srix-block-a':
+      default:
+        return { x: 115, y: 160 };
+    }
+  };
+
+  // Primary Google Maps route polyline path
+  const getPrimaryRouteD = (): string => {
+    switch (selectedBuilding.id) {
+      case 'centenary-bhavan':
+        return 'M 185 236 L 185 150 L 250 150 L 250 135';
+      case 'central-library':
+        return 'M 185 236 L 250 236 L 350 236 L 382 236 L 382 225';
+      case 'block-b':
+        return 'M 185 236 L 150 236 L 150 310 L 125 310';
+      case 'sports-complex':
+        return 'M 185 236 L 250 236 L 350 236 L 350 310 L 370 310';
+      case 'hostels-mess':
+        return 'M 185 236 L 250 236 L 350 236 L 350 385 L 370 385';
+      case 'srix-block-a':
+      default:
+        return 'M 185 236 L 150 236 L 150 215 L 125 215';
+    }
+  };
+
+  // Alternate route (e.g. via covered shaded walkway / outer ring)
+  const getAlternateRouteD = (): string => {
+    switch (selectedBuilding.id) {
+      case 'centenary-bhavan':
+        return 'M 185 236 L 150 236 L 150 120 L 235 120';
+      case 'central-library':
+        return 'M 185 236 L 185 270 L 350 270 L 382 270 L 382 230';
+      case 'srix-block-a':
+      default:
+        return 'M 185 236 L 185 195 L 130 195 L 120 205';
+    }
+  };
+
+  // Live interpolated user walking beacon position along route
+  const getLiveUserPosition = () => {
+    if (!isNavigatingLive) {
+      return { x: 185, y: 236, angle: -45 };
+    }
+    const t = Math.min(1, Math.max(0, liveStepIndex / Math.max(1, totalSteps - 1)));
+    const startX = 185;
+    const startY = 236;
+    const targetX = destCoords.x;
+    const targetY = destCoords.y;
+
+    const currentX = startX + (targetX - startX) * t;
+    const currentY = startY + (targetY - startY) * t;
+    const angle = Math.atan2(targetY - startY, targetX - startX) * (180 / Math.PI);
+
+    return { x: currentX, y: currentY, angle };
+  };
+
+  const liveUserPos = getLiveUserPosition();
+
   return (
-    <div className="relative w-full h-[360px] sm:h-[400px] overflow-hidden bg-[#ebe4d5] select-none border-y border-[#e2d8c3]">
-      {/* Top Location Pill */}
+    <div className="relative w-full h-full min-h-[350px] overflow-hidden bg-[#ebe4d5] select-none border-y sm:border-y-0 border-[#e2d8c3]">
+      {/* Top Location / Live GPS Tracking Pill */}
       <div className="absolute top-3 left-3 sm:left-4 z-20">
         <button
           id="btn-user-location-pill"
-          onClick={onCycleUserLocation}
-          className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/95 backdrop-blur-xs text-[#000923] text-xs font-bold shadow-md border border-[#e2d8c3] hover:bg-slate-50 transition-all active:scale-95 cursor-pointer"
-          title="Click to toggle GPS location"
+          onClick={() => {
+            triggerHaptic('tap');
+            onCycleUserLocation();
+          }}
+          className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold shadow-md border transition-all active:scale-95 cursor-pointer ${
+            isNavigatingLive
+              ? 'bg-[#1a73e8] text-white border-blue-400 animate-pulse'
+              : 'bg-white/95 backdrop-blur-xs text-[#000923] border-[#e2d8c3] hover:bg-slate-50'
+          }`}
+          title="Click to toggle simulated GPS waypoint"
         >
-          <span className="w-2.5 h-2.5 rounded-full bg-[#000923] ring-2 ring-blue-300 animate-pulse" />
-          <span>{userLocationName}</span>
+          <span
+            className={`w-2.5 h-2.5 rounded-full ${
+              isNavigatingLive ? 'bg-white ring-2 ring-blue-200' : 'bg-[#000923] ring-2 ring-blue-300'
+            }`}
+          />
+          <span>{isNavigatingLive ? 'Live Route Active' : userLocationName}</span>
         </button>
       </div>
+
+      {/* Top Next Class Floating Waypoint Banner */}
+      {highlightedNextClass && (
+        <div className="absolute top-12 left-3 sm:left-4 z-20 animate-in fade-in slide-in-from-top-2 duration-200">
+          <button
+            onClick={() => {
+              triggerHaptic('start_navigation');
+              onFocusNextClass?.();
+            }}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#000923]/95 text-white text-[11px] font-bold shadow-lg border border-amber-400 hover:bg-[#0e2044] transition-all active:scale-95 cursor-pointer backdrop-blur-xs"
+            title="Click to route to your next scheduled classroom"
+          >
+            <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
+            <span className="text-amber-300">Next Class:</span>
+            <span className="truncate max-w-[140px] sm:max-w-[200px]">
+              {highlightedNextClass.courseCode ? `${highlightedNextClass.courseCode} • ` : ''}
+              {highlightedNextClass.subject}
+            </span>
+            <span className="text-slate-300 font-mono text-[10px]">
+              ({highlightedNextClass.time})
+            </span>
+            <span className="text-amber-400">➔</span>
+          </button>
+        </div>
+      )}
 
       {/* Floating Right Map Controls Cluster */}
       <div className="absolute top-3 right-3 sm:right-4 z-20 flex flex-col gap-2">
@@ -69,19 +229,23 @@ export const CampusMap: React.FC<CampusMapProps> = ({
         <button
           id="btn-map-gps"
           onClick={() => {
+            triggerHaptic('tap');
             setZoomLevel(1);
           }}
           className="w-9 h-9 rounded-full bg-white text-[#0e2044] flex items-center justify-center shadow-md border border-[#e2d8c3] hover:bg-slate-50 transition-all active:scale-95 cursor-pointer"
           title="Center on my location"
         >
-          <Crosshair className="w-4 h-4 text-[#0e2044]" />
+          <Crosshair className="w-4 h-4 text-[#1a73e8]" />
         </button>
 
         {/* Layer Toggle Button */}
         <div className="relative">
           <button
             id="btn-map-layers"
-            onClick={() => setShowLayerMenu(!showLayerMenu)}
+            onClick={() => {
+              triggerHaptic('tap');
+              setShowLayerMenu(!showLayerMenu);
+            }}
             className={`w-9 h-9 rounded-full bg-white flex items-center justify-center shadow-md border border-[#e2d8c3] hover:bg-slate-50 transition-all active:scale-95 cursor-pointer ${
               showLayerMenu ? 'ring-2 ring-[#c88d3b]' : ''
             }`}
@@ -106,6 +270,7 @@ export const CampusMap: React.FC<CampusMapProps> = ({
                 <button
                   key={layer.id}
                   onClick={() => {
+                    triggerHaptic('tap');
                     setActiveLayer(layer.id);
                     setShowLayerMenu(false);
                   }}
@@ -129,7 +294,10 @@ export const CampusMap: React.FC<CampusMapProps> = ({
         <div className="flex flex-col bg-white rounded-full shadow-md border border-[#e2d8c3] overflow-hidden">
           <button
             id="btn-map-zoom-in"
-            onClick={handleZoomIn}
+            onClick={() => {
+              triggerHaptic('tap');
+              handleZoomIn();
+            }}
             className="w-9 h-8 flex items-center justify-center text-slate-700 hover:bg-slate-50 active:bg-slate-100 border-b border-slate-200 cursor-pointer"
             title="Zoom in"
           >
@@ -137,7 +305,10 @@ export const CampusMap: React.FC<CampusMapProps> = ({
           </button>
           <button
             id="btn-map-zoom-out"
-            onClick={handleZoomOut}
+            onClick={() => {
+              triggerHaptic('tap');
+              handleZoomOut();
+            }}
             className="w-9 h-8 flex items-center justify-center text-slate-700 hover:bg-slate-50 active:bg-slate-100 cursor-pointer"
             title="Zoom out"
           >
@@ -150,13 +321,21 @@ export const CampusMap: React.FC<CampusMapProps> = ({
       <div className="absolute bottom-2 left-3 sm:left-4 z-20">
         <button
           id="btn-map-sos-pill"
-          onClick={onOpenSOS}
+          onClick={handleSOSClick}
           className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/95 backdrop-blur-xs text-red-600 font-bold text-xs shadow-md border border-red-200 hover:bg-red-50 transition-all active:scale-95 cursor-pointer"
         >
           <span className="text-red-600 font-black">✱</span>
           <PhoneCall className="w-3 h-3 text-red-600" />
           <span>SOS • (0870) 281-8333</span>
         </button>
+      </div>
+
+      {/* Live Route Mode Indicator Pill (Google Maps Style) */}
+      <div className="absolute bottom-2 right-3 sm:right-4 z-20">
+        <div className="px-2.5 py-1 rounded-full bg-[#1a73e8] text-white font-bold text-[11px] shadow-md flex items-center gap-1.5">
+          <Navigation2 className="w-3 h-3 fill-white" />
+          <span>{selectedBuilding.walkMinutes} min ({selectedBuilding.distanceMeters}m)</span>
+        </div>
       </div>
 
       {/* Main Vector Campus Canvas */}
@@ -168,10 +347,24 @@ export const CampusMap: React.FC<CampusMapProps> = ({
       >
         <svg
           viewBox="0 0 500 500"
-          className="w-full h-full max-w-[500px] max-h-[500px]"
+          className="w-full h-full max-w-[850px] max-h-[850px] object-contain p-1 sm:p-3"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
         >
+          <defs>
+            {/* Google Maps Route Glowing Filter */}
+            <filter id="route-glow" x="-20%" y="-20%" width="140%" height="140%">
+              <feDropShadow dx="0" dy="1" stdDeviation="3" floodColor="#1a73e8" floodOpacity="0.5" />
+            </filter>
+
+            {/* User heading cone radial gradient */}
+            <radialGradient id="heading-cone" cx="0%" cy="50%" r="100%">
+              <stop offset="0%" stopColor="#4285f4" stopOpacity="0.5" />
+              <stop offset="70%" stopColor="#4285f4" stopOpacity="0.15" />
+              <stop offset="100%" stopColor="#4285f4" stopOpacity="0" />
+            </radialGradient>
+          </defs>
+
           {/* Base Campus Ground */}
           <rect
             width="500"
@@ -209,7 +402,6 @@ export const CampusMap: React.FC<CampusMapProps> = ({
           )}
 
           {/* Roadways / Pathways */}
-          {/* Main Road Loop */}
           <path
             d="M 60 210 L 440 210 M 250 60 L 250 480 M 150 110 L 150 450 M 350 110 L 350 450"
             stroke="#ffffff"
@@ -225,7 +417,6 @@ export const CampusMap: React.FC<CampusMapProps> = ({
             strokeLinejoin="round"
             opacity="0.4"
           />
-          {/* Center dashed line for roads */}
           <path
             d="M 60 210 L 440 210 M 250 60 L 250 480 M 150 110 L 150 450 M 350 110 L 350 450"
             stroke="#ffffff"
@@ -236,6 +427,7 @@ export const CampusMap: React.FC<CampusMapProps> = ({
           {/* Central Green Quadrangle Lawn */}
           <g
             onClick={() => {
+              triggerHaptic('tap');
               const b = {
                 id: 'green-quadrangle',
                 name: 'Green Quadrangle Lawns',
@@ -292,10 +484,11 @@ export const CampusMap: React.FC<CampusMapProps> = ({
             </g>
           )}
 
-          {/* 1. Centenary Bhavan (Admin Block) - Top Center */}
+          {/* 1. Centenary Bhavan (Admin Block) */}
           <g
             id="map-block-admin"
             onClick={() => {
+              triggerHaptic('tap');
               const b = {
                 id: 'centenary-bhavan',
                 name: 'Centenary Bhavan',
@@ -323,7 +516,6 @@ export const CampusMap: React.FC<CampusMapProps> = ({
             }}
             className="cursor-pointer group"
           >
-            {/* 3D shadow if in 3D mode */}
             {activeLayer === '3d' && (
               <rect
                 x="184"
@@ -346,7 +538,6 @@ export const CampusMap: React.FC<CampusMapProps> = ({
               strokeWidth={isAdminSelected ? '3' : '1.5'}
               className="transition-all"
             />
-            {/* Pill Header */}
             <rect
               x="215"
               y="82"
@@ -378,10 +569,11 @@ export const CampusMap: React.FC<CampusMapProps> = ({
             </text>
           </g>
 
-          {/* 2. BLOCK A • CSE & IT (School of Computer Science & SRiX) - Upper Left */}
+          {/* 2. BLOCK A • CSE & IT */}
           <g
             id="map-block-cse"
             onClick={() => {
+              triggerHaptic('tap');
               const b = {
                 id: 'srix-block-a',
                 name: 'SRiX & School of Computer Science',
@@ -434,7 +626,6 @@ export const CampusMap: React.FC<CampusMapProps> = ({
               strokeWidth={isBlockASelected ? '3' : '1.5'}
               className="transition-all"
             />
-            {/* Pill Header */}
             <rect
               x="58"
               y="172"
@@ -476,10 +667,11 @@ export const CampusMap: React.FC<CampusMapProps> = ({
             </text>
           </g>
 
-          {/* 3. Central Library - Upper Right */}
+          {/* 3. Central Library */}
           <g
             id="map-block-library"
             onClick={() => {
+              triggerHaptic('tap');
               const b = {
                 id: 'central-library',
                 name: 'Central Library',
@@ -551,10 +743,11 @@ export const CampusMap: React.FC<CampusMapProps> = ({
             </text>
           </g>
 
-          {/* 4. BLOCK B (Mech & Civil Engg) - Lower Left */}
+          {/* 4. BLOCK B */}
           <g
             id="map-block-b"
             onClick={() => {
+              triggerHaptic('tap');
               const b = {
                 id: 'block-b',
                 name: 'Block B - Mechanical & Civil Engg',
@@ -622,10 +815,11 @@ export const CampusMap: React.FC<CampusMapProps> = ({
             </text>
           </g>
 
-          {/* 5. SPORTS COMPLEX - Lower Right */}
+          {/* 5. SPORTS COMPLEX */}
           <g
             id="map-block-sports"
             onClick={() => {
+              triggerHaptic('tap');
               const b = {
                 id: 'sports-complex',
                 name: 'SRU Sports Complex',
@@ -693,10 +887,11 @@ export const CampusMap: React.FC<CampusMapProps> = ({
             </text>
           </g>
 
-          {/* 6. Boys & Girls Hostels / Mess - Bottom Right Area */}
+          {/* 6. Hostels */}
           <g
             id="map-block-hostels"
             onClick={() => {
+              triggerHaptic('tap');
               const b = {
                 id: 'hostels-mess',
                 name: 'Student Hostels & Dining Hall',
@@ -743,7 +938,7 @@ export const CampusMap: React.FC<CampusMapProps> = ({
             </text>
           </g>
 
-          {/* Main Gate - Bottom Center */}
+          {/* Main Gate */}
           <g id="map-block-gate">
             <rect
               x="220"
@@ -766,40 +961,222 @@ export const CampusMap: React.FC<CampusMapProps> = ({
             </text>
           </g>
 
-          {/* Dotted Walking Path from AI/ML Lab to User Position (Exact match from screenshot!) */}
-          <path
-            d="M 140 234 Q 165 238 185 236"
-            stroke="#000923"
-            strokeWidth="3.5"
-            strokeDasharray="3 4"
-            strokeLinecap="round"
-          />
+          {/* ======================================================== */}
+          {/* GOOGLE MAPS LIVE ROUTE VISUALIZATION                     */}
+          {/* ======================================================== */}
 
-          {/* User Location Node (GPS Pulsing Pin at (185, 236)) */}
-          <g id="user-location-node">
-            <circle cx="185" cy="236" r="10" fill="#000923" opacity="0.18">
+          {/* 1. Alternate Route (Gray dashed route with ETA badge) */}
+          <g
+            className="cursor-pointer opacity-75 hover:opacity-100 transition-opacity"
+            onClick={() => {
+              triggerHaptic('tap');
+              setSelectedRouteType('alternate');
+            }}
+          >
+            <path
+              d={getAlternateRouteD()}
+              stroke="#94a3b8"
+              strokeWidth="5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeDasharray="4 6"
+            />
+            <path
+              d={getAlternateRouteD()}
+              stroke="#64748b"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </g>
+
+          {/* 2. Primary Google Maps Vibrant Blue Polyline with Animated Chevrons */}
+          <g
+            filter="url(#route-glow)"
+            className="cursor-pointer"
+            onClick={() => {
+              triggerHaptic('tap');
+              setSelectedRouteType('primary');
+            }}
+          >
+            {/* Outer border stroke */}
+            <path
+              d={getPrimaryRouteD()}
+              stroke="#1557b0"
+              strokeWidth="8.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            {/* Signature Google Maps Blue route */}
+            <path
+              d={getPrimaryRouteD()}
+              stroke="#1a73e8"
+              strokeWidth="6"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            {/* Flowing animated dashes along route */}
+            <path
+              d={getPrimaryRouteD()}
+              stroke="#ffffff"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeDasharray="5 10"
+              opacity="0.85"
+            >
+              <animate
+                attributeName="stroke-dashoffset"
+                values="0;-30"
+                dur="1.2s"
+                repeatCount="indefinite"
+              />
+            </path>
+          </g>
+
+          {/* 3. Google Maps ETA Pills on Route Nodes */}
+          <g id="route-eta-pills">
+            {/* Primary ETA Badge on middle segment */}
+            <g transform="translate(160, 222)">
+              <rect
+                x="0"
+                y="0"
+                width="38"
+                height="15"
+                rx="7.5"
+                fill="#000923"
+                stroke="#ffffff"
+                strokeWidth="1.2"
+                className="shadow-sm"
+              />
+              <text
+                x="19"
+                y="10.5"
+                textAnchor="middle"
+                fill="#ffffff"
+                fontSize="7.5"
+                fontWeight="800"
+              >
+                {selectedBuilding.walkMinutes} min
+              </text>
+            </g>
+          </g>
+
+          {/* 4. Destination Pin: Iconic Google Maps 3D Red Teardrop Landmark */}
+          <g id="google-maps-dest-pin" transform={`translate(${destCoords.x - 12}, ${destCoords.y - 28})`}>
+            {/* Ground shadow */}
+            <ellipse cx="12" cy="28" rx="7" ry="2.5" fill="#000000" opacity="0.3" />
+            {/* Pin body */}
+            <path
+              d="M12 2C7.58 2 4 5.58 4 10c0 5.25 8 18 8 18s8-12.75 8-18c0-4.42-3.58-8-8-8z"
+              fill="#ea4335"
+              stroke="#c5221f"
+              strokeWidth="1.2"
+            />
+            {/* Pin inner white circle */}
+            <circle cx="12" cy="10" r="3.5" fill="#ffffff" />
+            <circle cx="12" cy="10" r="1.5" fill="#ea4335" />
+          </g>
+
+          {/* 4b. Highlighted Next Class Timetable Marker (if present) */}
+          {highlightedNextClass && (() => {
+            const nextCoords = getNextClassPinCoords(highlightedNextClass.buildingId);
+            return (
+              <g
+                id="next-class-map-marker"
+                transform={`translate(${nextCoords.x}, ${nextCoords.y})`}
+                className="cursor-pointer"
+                onClick={() => {
+                  triggerHaptic('start_navigation');
+                  onFocusNextClass?.();
+                }}
+              >
+                {/* Radar target waves */}
+                <circle cx="0" cy="0" r="30" fill="#f59e0b" opacity="0.2">
+                  <animate
+                    attributeName="r"
+                    values="14;34;14"
+                    dur="1.8s"
+                    repeatCount="indefinite"
+                  />
+                  <animate
+                    attributeName="opacity"
+                    values="0.35;0.05;0.35"
+                    dur="1.8s"
+                    repeatCount="indefinite"
+                  />
+                </circle>
+
+                {/* Floating Badge Box */}
+                <g transform="translate(0, -28)">
+                  <rect
+                    x="-68"
+                    y="-18"
+                    width="136"
+                    height="22"
+                    rx="11"
+                    fill="#000923"
+                    stroke="#f59e0b"
+                    strokeWidth="1.8"
+                    filter="url(#route-glow)"
+                  />
+                  <text
+                    x="0"
+                    y="-4"
+                    textAnchor="middle"
+                    fill="#fbbf24"
+                    fontSize="7.5"
+                    fontWeight="800"
+                    letterSpacing="0.03em"
+                  >
+                    🎓 NEXT: {highlightedNextClass.courseCode || 'CLASS'} • {highlightedNextClass.time}
+                  </text>
+                  {/* Down pointer arrow */}
+                  <polygon points="-4,-18 4,-18 0,-13" fill="#f59e0b" transform="translate(0, 18)" />
+                </g>
+
+                {/* Golden target center dot */}
+                <circle cx="0" cy="0" r="5" fill="#f59e0b" stroke="#ffffff" strokeWidth="1.5" />
+              </g>
+            );
+          })()}
+
+          {/* 5. Live User Navigation Beacon (Google Maps Blue Dot + Flashlight Heading Cone) */}
+          <g id="user-location-node" transform={`translate(${liveUserPos.x}, ${liveUserPos.y})`}>
+            {/* Field-of-View Heading Cone */}
+            <g transform={`rotate(${liveUserPos.angle})`}>
+              <path
+                d="M 0 0 L 45 -22 A 45 45 0 0 1 45 22 Z"
+                fill="url(#heading-cone)"
+              />
+            </g>
+
+            {/* Radar Pulsing Rings */}
+            <circle cx="0" cy="0" r="14" fill="#1a73e8" opacity="0.15">
               <animate
                 attributeName="r"
-                values="8;16;8"
-                dur="2s"
+                values="8;20;8"
+                dur="1.8s"
                 repeatCount="indefinite"
               />
               <animate
                 attributeName="opacity"
-                values="0.25;0;0.25"
-                dur="2s"
+                values="0.35;0;0.35"
+                dur="1.8s"
                 repeatCount="indefinite"
               />
             </circle>
-            <circle
-              cx="185"
-              cy="236"
-              r="7"
-              fill="#000923"
-              stroke="#ffffff"
-              strokeWidth="2.5"
-            />
-            <circle cx="185" cy="236" r="2.5" fill="#c88d3b" />
+
+            {/* Solid White Outer Rim */}
+            <circle cx="0" cy="0" r="7.5" fill="#ffffff" stroke="#174ea6" strokeWidth="1" />
+
+            {/* Google Maps Blue Core Dot */}
+            <circle cx="0" cy="0" r="5" fill="#1a73e8" />
+
+            {/* Center Heading White Arrow */}
+            <g transform={`rotate(${liveUserPos.angle})`}>
+              <path d="M 3 0 L -2 -3 L -0.5 0 L -2 3 Z" fill="#ffffff" />
+            </g>
           </g>
         </svg>
       </div>

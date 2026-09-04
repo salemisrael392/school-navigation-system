@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, PhoneCall, ShieldAlert, HeartPulse, ShieldCheck, Flame, BellRing, MapPin } from 'lucide-react';
 import { EMERGENCY_CONTACTS } from '../data/campusData';
+import { triggerHaptic } from '../utils/haptics';
 
 interface EmergencySOSModalProps {
   isOpen: boolean;
@@ -19,11 +20,22 @@ export const EmergencySOSModal: React.FC<EmergencySOSModalProps> = ({
   if (!isOpen) return null;
 
   const handleCall = (title: string, phone: string) => {
+    triggerHaptic('sos_trigger');
     setActiveCall(title);
     setTimeout(() => {
       // simulate dial
       window.location.href = `tel:${phone.replace(/[^0-9]/g, '')}`;
     }, 500);
+  };
+
+  const handleToggleAlarm = () => {
+    const nextState = !alarmTriggered;
+    if (nextState) {
+      triggerHaptic('sos_trigger');
+    } else {
+      triggerHaptic('tap');
+    }
+    setAlarmTriggered(nextState);
   };
 
   const getContactIcon = (icon: string) => {
@@ -122,7 +134,7 @@ export const EmergencySOSModal: React.FC<EmergencySOSModalProps> = ({
             </span>
           </div>
           <button
-            onClick={() => setAlarmTriggered(!alarmTriggered)}
+            onClick={handleToggleAlarm}
             className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
               alarmTriggered
                 ? 'bg-red-600 text-white shadow-md'

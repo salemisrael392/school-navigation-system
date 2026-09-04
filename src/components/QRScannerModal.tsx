@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, QrCode, Flashlight, RefreshCw, CheckCircle2, MapPin } from 'lucide-react';
+import { triggerHaptic } from '../utils/haptics';
 
 interface QRScannerModalProps {
   isOpen: boolean;
@@ -25,6 +26,7 @@ export const QRScannerModal: React.FC<QRScannerModalProps> = ({
   if (!isOpen) return null;
 
   const simulateScan = (locationName: string) => {
+    triggerHaptic('qr_success');
     setScannedLocation(locationName);
     setTimeout(() => {
       onLocationDetected(locationName);

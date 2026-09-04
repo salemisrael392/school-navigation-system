@@ -28,19 +28,19 @@ export const DirectoryView: React.FC<DirectoryViewProps> = ({
   });
 
   return (
-    <div className="p-4 space-y-4 max-w-lg mx-auto pb-20">
+    <div className="w-full max-w-6xl mx-auto p-4 sm:p-6 space-y-4 pb-20">
       {/* Title */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-xl bg-[#000923] text-white flex items-center justify-center">
-            <Building2 className="w-4 h-4" />
+        <div className="flex items-center gap-2.5">
+          <div className="w-9 h-9 rounded-xl bg-[#000923] text-white flex items-center justify-center shadow-xs">
+            <Building2 className="w-5 h-5" />
           </div>
           <div>
-            <h2 className="text-base font-bold text-[#000923]">Campus Directory</h2>
-            <p className="text-xs text-slate-500">All blocks, academic schools &amp; student offices</p>
+            <h2 className="text-base sm:text-lg font-bold text-[#000923]">Campus Directory</h2>
+            <p className="text-xs sm:text-sm text-slate-500">All blocks, academic schools &amp; student offices</p>
           </div>
         </div>
-        <span className="text-xs font-bold text-slate-500 bg-slate-100 px-2 py-1 rounded-lg">
+        <span className="text-xs font-bold text-slate-600 bg-white border border-[#e2d8c3] px-2.5 py-1 rounded-xl shadow-2xs">
           {CAMPUS_BUILDINGS.length} Locations
         </span>
       </div>
@@ -53,12 +53,12 @@ export const DirectoryView: React.FC<DirectoryViewProps> = ({
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search by block, department, or lab name..."
-          className="w-full pl-10 pr-4 py-2.5 bg-white rounded-2xl border border-[#e2d8c3] text-xs text-[#0c1c2f] placeholder:text-slate-400 focus:outline-none focus:border-[#000923]"
+          className="w-full pl-10 pr-4 py-2.5 bg-white rounded-2xl border border-[#e2d8c3] text-sm text-[#0c1c2f] placeholder:text-slate-400 focus:outline-none focus:border-[#000923] shadow-2xs"
         />
       </div>
 
       {/* Category Pills */}
-      <div className="flex gap-1.5 overflow-x-auto no-scrollbar py-0.5">
+      <div className="flex gap-2 overflow-x-auto no-scrollbar py-0.5">
         {[
           { id: 'all', label: 'All' },
           { id: 'academic', label: 'Academic' },
@@ -70,7 +70,7 @@ export const DirectoryView: React.FC<DirectoryViewProps> = ({
           <button
             key={c.id}
             onClick={() => setActiveCategory(c.id)}
-            className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
+            className={`px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
               activeCategory === c.id
                 ? 'bg-[#000923] text-white shadow-xs'
                 : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
@@ -81,29 +81,29 @@ export const DirectoryView: React.FC<DirectoryViewProps> = ({
         ))}
       </div>
 
-      {/* Directory List */}
-      <div className="space-y-2.5">
+      {/* Directory Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
         {filteredBuildings.map((building) => (
           <div
             key={building.id}
-            className="p-3.5 bg-white rounded-2xl border border-[#e6dec8] shadow-2xs hover:border-[#bfd2fd] transition-all flex flex-col gap-2"
+            className="p-4 bg-white rounded-2xl border border-[#e6dec8] shadow-2xs hover:border-[#bfd2fd] hover:shadow-sm transition-all flex flex-col justify-between gap-3"
           >
             <div className="flex items-start justify-between gap-2">
               <div
                 onClick={() => onSelectBuilding(building)}
-                className="cursor-pointer flex-1"
+                className="cursor-pointer flex-1 min-w-0"
               >
                 <div className="flex items-center gap-2 flex-wrap">
-                  <h3 className="text-xs font-bold text-[#000923] hover:text-[#c88d3b] transition-colors">
+                  <h3 className="text-sm font-bold text-[#000923] hover:text-[#c88d3b] transition-colors truncate">
                     {building.name}
                   </h3>
                   {building.badge && (
-                    <span className="px-1.5 py-0.5 rounded bg-[#eff4ff] text-[#0e2044] text-[10px] font-bold">
+                    <span className="px-1.5 py-0.5 rounded bg-[#eff4ff] text-[#0e2044] text-[10px] font-bold shrink-0">
                       {building.badge}
                     </span>
                   )}
                 </div>
-                <p className="text-[11px] text-slate-500 mt-0.5">
+                <p className="text-xs text-slate-500 mt-1 line-clamp-2">
                   {building.subtitle}
                 </p>
               </div>
@@ -111,15 +111,15 @@ export const DirectoryView: React.FC<DirectoryViewProps> = ({
               {/* Navigate button */}
               <button
                 onClick={() => onNavigateToBuilding(building)}
-                className="p-2 rounded-xl bg-[#000923] hover:bg-[#0e2044] text-white transition-all active:scale-95 shrink-0 cursor-pointer shadow-2xs"
+                className="p-2.5 rounded-xl bg-[#000923] hover:bg-[#0e2044] text-white transition-all active:scale-95 shrink-0 cursor-pointer shadow-2xs"
                 title="Start Route"
               >
-                <Navigation className="w-3.5 h-3.5" />
+                <Navigation className="w-4 h-4" />
               </button>
             </div>
 
             {/* Quick Meta Info */}
-            <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-[10.5px] text-slate-500 font-medium">
+            <div className="flex items-center justify-between pt-2.5 border-t border-slate-100 text-xs text-slate-500 font-medium">
               <span>{building.levels}</span>
               <span className="font-bold text-[#000923]">
                 {building.distanceMeters}m • {building.walkMinutes} min walk
