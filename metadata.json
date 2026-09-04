@@ -1,0 +1,6 @@
+{
+  "name": "SR University Wayfinding & Campus Portal",
+  "description": "Interactive wayfinding, campus map navigation, building floor plans, and facilities portal for SR University Telangana.",
+  "requestFramePermissions": ["geolocation"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
