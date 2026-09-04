@@ -47,6 +47,8 @@ export interface Building {
   floorPlans?: FloorPlan[];
   contactPerson?: string;
   phoneExtension?: string;
+  blockTag?: string; // e.g., 'Block A', 'Block B', 'Admin Block'
+  blockCode?: 'A' | 'B' | 'C' | 'D' | 'E' | 'Admin' | 'Library';
 }
 
 export interface NearbyCard {

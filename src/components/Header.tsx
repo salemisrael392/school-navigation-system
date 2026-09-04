@@ -12,6 +12,8 @@ import {
   Building2,
   Compass,
   PhoneCall,
+  QrCode,
+  Share2,
 } from 'lucide-react';
 import { TabType } from '../types';
 import { triggerHaptic } from '../utils/haptics';
@@ -26,6 +28,9 @@ interface HeaderProps {
   onOpenGuestPass: () => void;
   onOpenNotifications: () => void;
   onOpenSOS: () => void;
+  onOpenShareModal: () => void;
+  onSelectBlock?: (blockId: string) => void;
+  selectedBlockId?: string;
   hasUpcomingClass?: boolean;
   unreadCount?: number;
   onVoiceSearch: () => void;
@@ -33,10 +38,20 @@ interface HeaderProps {
   isListening?: boolean;
 }
 
+const ACADEMIC_BLOCK_CHIPS = [
+  { id: 'srix-block-a', label: 'Block A (CSE)', query: 'Block A' },
+  { id: 'block-b', label: 'Block B (Mech)', query: 'Block B' },
+  { id: 'block-c', label: 'Block C (ECE)', query: 'Block C' },
+  { id: 'block-d', label: 'Block D (Science)', query: 'Block D' },
+  { id: 'block-e', label: 'Block E (MBA)', query: 'Block E' },
+  { id: 'centenary-bhavan', label: 'Admin Block', query: 'Admin Block' },
+  { id: 'central-library', label: 'Central Library', query: 'Central Library' },
+];
+
 const CATEGORIES = [
-  { id: 'all', label: 'All Blocks', hasDot: true },
-  { id: 'academic', label: 'Academic', icon: '🏛️' },
-  { id: 'admin', label: 'Admin & Offices', icon: '🏢' },
+  { id: 'all', label: 'All Locations', hasDot: true },
+  { id: 'academic', label: 'Academic Blocks', icon: '🏛️' },
+  { id: 'admin', label: 'Admin HQ', icon: '🏢' },
   { id: 'lab', label: 'Labs & R&D', icon: '🔬' },
   { id: 'sports', label: 'Sports & Gym', icon: '🏸' },
   { id: 'hostel', label: 'Hostels & Mess', icon: '🛏️' },
@@ -53,6 +68,9 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenGuestPass,
   onOpenNotifications,
   onOpenSOS,
+  onOpenShareModal,
+  onSelectBlock,
+  selectedBlockId,
   hasUpcomingClass = true,
   unreadCount = 2,
   onVoiceSearch,
@@ -169,6 +187,19 @@ export const Header: React.FC<HeaderProps> = ({
               <span className="sm:hidden">SOS</span>
             </button>
 
+            {/* Share Portal & Scannable QR Code Button */}
+            <button
+              id="btn-header-share-qr"
+              onClick={onOpenShareModal}
+              className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 bg-[#fef7ee] hover:bg-[#faebd7] border border-[#e2d8c3] text-[#000923] rounded-xl text-left transition-all active:scale-98 shadow-2xs cursor-pointer"
+              title="Share Campus Portal & QR Code with friends"
+            >
+              <QrCode className="w-3.5 h-3.5 text-[#c88d3b]" />
+              <span className="text-xs font-bold leading-none text-[#000923]">
+                Share <span className="hidden sm:inline">QR</span>
+              </span>
+            </button>
+
             {/* Guest Pass Button */}
             <button
               id="btn-guest-pass"
@@ -209,7 +240,7 @@ export const Header: React.FC<HeaderProps> = ({
                 type="text"
                 value={searchQuery}
                 onChange={(e) => onSearchChange(e.target.value)}
-                placeholder="Search blocks, labs, seminar halls, offices, amenities..."
+                placeholder="Search blocks (A, B, C, D, E), labs, classrooms, offices..."
                 className="w-full bg-transparent text-xs sm:text-sm text-[#0c1c2f] placeholder:text-slate-400 focus:outline-none"
               />
               {searchQuery && (
@@ -278,6 +309,40 @@ export const Header: React.FC<HeaderProps> = ({
               );
             })}
           </div>
+        </div>
+
+        {/* Academic Block Quick Search Row */}
+        <div className="mt-2 pt-2 border-t border-slate-100/70 flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 text-xs">
+          <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider shrink-0 flex items-center gap-1 pr-1">
+            <Building2 className="w-3.5 h-3.5 text-[#c88d3b]" />
+            Block Finder:
+          </span>
+          {ACADEMIC_BLOCK_CHIPS.map((blk) => {
+            const isSelected =
+              selectedBlockId === blk.id ||
+              (searchQuery && searchQuery.toLowerCase().includes(blk.query.toLowerCase()));
+            return (
+              <button
+                key={blk.id}
+                id={`block-chip-${blk.id}`}
+                onClick={() => {
+                  triggerHaptic('tap');
+                  if (onSelectBlock) {
+                    onSelectBlock(blk.id);
+                  } else {
+                    onSearchChange(blk.query);
+                  }
+                }}
+                className={`whitespace-nowrap px-2.5 py-1 rounded-lg text-xs font-medium transition-all active:scale-95 cursor-pointer flex items-center gap-1 border ${
+                  isSelected
+                    ? 'bg-[#000923] text-white border-[#000923] shadow-xs font-bold'
+                    : 'bg-[#f4f6fb] text-slate-700 border-slate-200/80 hover:bg-white hover:border-[#c88d3b]'
+                }`}
+              >
+                <span>{blk.label}</span>
+              </button>
+            );
+          })}
         </div>
       </div>
     </header>

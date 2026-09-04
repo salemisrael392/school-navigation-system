@@ -79,6 +79,12 @@ export const CampusMap: React.FC<CampusMapProps> = ({
         return { x: 382, y: 215 };
       case 'block-b':
         return { x: 112, y: 310 };
+      case 'block-c':
+        return { x: 195, y: 310 };
+      case 'block-d':
+        return { x: 260, y: 310 };
+      case 'block-e':
+        return { x: 325, y: 310 };
       case 'sports-complex':
         return { x: 380, y: 310 };
       case 'hostels-mess':
@@ -99,6 +105,12 @@ export const CampusMap: React.FC<CampusMapProps> = ({
         return { x: 382, y: 165 };
       case 'block-b':
         return { x: 112, y: 260 };
+      case 'block-c':
+        return { x: 195, y: 260 };
+      case 'block-d':
+        return { x: 260, y: 260 };
+      case 'block-e':
+        return { x: 325, y: 260 };
       case 'sports-complex':
         return { x: 380, y: 265 };
       case 'hostels-mess':
@@ -118,6 +130,12 @@ export const CampusMap: React.FC<CampusMapProps> = ({
         return 'M 185 236 L 250 236 L 350 236 L 382 236 L 382 225';
       case 'block-b':
         return 'M 185 236 L 150 236 L 150 310 L 125 310';
+      case 'block-c':
+        return 'M 185 236 L 195 236 L 195 300';
+      case 'block-d':
+        return 'M 185 236 L 260 236 L 260 300';
+      case 'block-e':
+        return 'M 185 236 L 325 236 L 325 300';
       case 'sports-complex':
         return 'M 185 236 L 250 236 L 350 236 L 350 310 L 370 310';
       case 'hostels-mess':
@@ -133,6 +151,12 @@ export const CampusMap: React.FC<CampusMapProps> = ({
     switch (selectedBuilding.id) {
       case 'centenary-bhavan':
         return 'M 185 236 L 150 236 L 150 120 L 235 120';
+      case 'block-c':
+        return 'M 185 236 L 150 236 L 150 280 L 195 280 L 195 300';
+      case 'block-d':
+        return 'M 185 236 L 260 236 L 260 270 L 260 300';
+      case 'block-e':
+        return 'M 185 236 L 325 236 L 325 270 L 325 300';
       case 'central-library':
         return 'M 185 236 L 185 270 L 350 270 L 382 270 L 382 230';
       case 'srix-block-a':

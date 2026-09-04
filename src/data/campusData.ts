@@ -20,6 +20,8 @@ export const CAMPUS_BUILDINGS: Building[] = [
     thumbnailUrl: 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=400&q=80',
     mapX: 25,
     mapY: 34,
+    blockTag: 'Block A',
+    blockCode: 'A',
     contactPerson: 'Dr. V. Rajesh, Dean of CSE',
     phoneExtension: 'Ext. 2410',
     facilities: [
@@ -142,6 +144,8 @@ export const CAMPUS_BUILDINGS: Building[] = [
     thumbnailUrl: 'https://images.unsplash.com/photo-1541829070764-84a7d30dd3f3?auto=format&fit=crop&w=400&q=80',
     mapX: 50,
     mapY: 20,
+    blockTag: 'Admin Block',
+    blockCode: 'Admin',
     contactPerson: 'Registrar Office',
     phoneExtension: 'Ext. 1001',
     facilities: [
@@ -198,6 +202,8 @@ export const CAMPUS_BUILDINGS: Building[] = [
     thumbnailUrl: 'https://images.unsplash.com/photo-1521587760476-6c12a4b040da?auto=format&fit=crop&w=400&q=80',
     mapX: 75,
     mapY: 34,
+    blockTag: 'Library Block',
+    blockCode: 'Library',
     contactPerson: 'Chief Librarian',
     phoneExtension: 'Ext. 3105',
     facilities: [
@@ -246,6 +252,10 @@ export const CAMPUS_BUILDINGS: Building[] = [
     thumbnailUrl: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=400&q=80',
     mapX: 25,
     mapY: 48,
+    blockTag: 'Block B',
+    blockCode: 'B',
+    contactPerson: 'Prof. T. Murali, Head of Mechanical',
+    phoneExtension: 'Ext. 2201',
     facilities: [
       {
         id: 'b1',
@@ -262,6 +272,164 @@ export const CAMPUS_BUILDINGS: Building[] = [
         level: 'Level 1',
         iconName: 'Shield',
         description: 'Universal Testing Machine (UTM), torsion testers, and hardness testing equipment.'
+      },
+      {
+        id: 'b3',
+        name: 'Fluid Mechanics & Hydraulics Bay',
+        room: 'Ground Floor • South Bay',
+        level: 'Ground Floor',
+        iconName: 'Activity',
+        description: 'Venturi meter testbeds, Pelton wheel and Francis turbine flow rigs.'
+      }
+    ]
+  },
+  {
+    id: 'block-c',
+    name: 'Block C - Electrical & Electronics Engg',
+    shortName: 'BLOCK C • ECE & EEE',
+    subtitle: 'School of Electrical, Electronics & Communication Engg',
+    badge: 'Semiconductor Hub',
+    badgeVariant: 'lavender',
+    category: 'academic',
+    liveStatus: 'Open • In Session',
+    isOpen: true,
+    distanceMeters: 190,
+    walkMinutes: 3,
+    levels: 'G + 3 Floors',
+    totalFloors: 4,
+    description: 'Advanced electronics and electrical engineering center housing VLSI chip design suites, telecommunications labs, smart power grid testbenches, and microelectronics fabrication setups.',
+    imageUrl: 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1000&q=80',
+    thumbnailUrl: 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=400&q=80',
+    mapX: 38,
+    mapY: 48,
+    blockTag: 'Block C',
+    blockCode: 'C',
+    contactPerson: 'Dr. M. Sravanthi, HOD ECE',
+    phoneExtension: 'Ext. 2304',
+    facilities: [
+      {
+        id: 'c1',
+        name: 'VLSI & Circuit Simulation Suite',
+        room: 'Room 304 • Level 3',
+        level: 'Level 3',
+        iconName: 'Cpu',
+        description: 'Cadence EDA tools, FPGA development boards, and digital logic analyzers.'
+      },
+      {
+        id: 'c2',
+        name: 'Embedded Systems & DSP Lab',
+        room: 'Room 201 • Level 2',
+        level: 'Level 2',
+        iconName: 'Brain',
+        description: 'Microcontroller prototyping kits, digital signal processors, and oscilloscope benches.'
+      },
+      {
+        id: 'c3',
+        name: 'Power Systems & EV Charging Lab',
+        room: 'Ground Floor • Bay 2',
+        level: 'Ground Floor',
+        iconName: 'Lightbulb',
+        description: 'Electric vehicle battery management system testbenches and smart grid simulator.'
+      }
+    ]
+  },
+  {
+    id: 'block-d',
+    name: 'Block D - Sciences, Humanities & BioTech',
+    shortName: 'BLOCK D • SCIENCES',
+    subtitle: 'Department of Physics, Chemistry, Mathematics & Biotech',
+    badge: 'Discovery Center',
+    badgeVariant: 'green',
+    category: 'academic',
+    liveStatus: 'Open • Practical Classes',
+    isOpen: true,
+    distanceMeters: 260,
+    walkMinutes: 4,
+    levels: 'G + 3 Floors',
+    totalFloors: 4,
+    description: 'Dedicated foundation science and advanced biotechnology complex with analytical chemistry instrumentation, optics and photonics laboratories, and computational biology suites.',
+    imageUrl: 'https://images.unsplash.com/photo-1532094349884-543bc11b234d?auto=format&fit=crop&w=1000&q=80',
+    thumbnailUrl: 'https://images.unsplash.com/photo-1532094349884-543bc11b234d?auto=format&fit=crop&w=400&q=80',
+    mapX: 52,
+    mapY: 48,
+    blockTag: 'Block D',
+    blockCode: 'D',
+    contactPerson: 'Prof. Ramesh Chandra, Dean of Sciences',
+    phoneExtension: 'Ext. 2110',
+    facilities: [
+      {
+        id: 'd1',
+        name: 'Optics, Lasers & Photonics Lab',
+        room: 'Room 102 • Level 1',
+        level: 'Level 1',
+        iconName: 'Lightbulb',
+        description: 'He-Ne laser experiments, spectrophotometers, and optical fiber transmission rigs.'
+      },
+      {
+        id: 'd2',
+        name: 'Biotechnology & Tissue Culture Lab',
+        room: 'Room 205 • Level 2',
+        level: 'Level 2',
+        iconName: 'Shield',
+        description: 'Biosafety laminar flow cabinets, PCR thermal cyclers, and refrigerated centrifuges.'
+      },
+      {
+        id: 'd3',
+        name: 'Language & Communication Skills Lab',
+        room: 'Ground Floor • Room G-04',
+        level: 'Ground Floor',
+        iconName: 'BookOpen',
+        description: 'Interactive audio-visual consoles for TOEFL/GRE preparation and corporate soft skills.'
+      }
+    ]
+  },
+  {
+    id: 'block-e',
+    name: 'Block E - School of Business & Architecture',
+    shortName: 'BLOCK E • MBA & DESIGN',
+    subtitle: 'SRU School of Business, Executive MBA & Architecture Studio',
+    badge: 'Corporate Wing',
+    badgeVariant: 'amber',
+    category: 'academic',
+    liveStatus: 'Open • Seminars Live',
+    isOpen: true,
+    distanceMeters: 340,
+    walkMinutes: 5,
+    levels: 'G + 3 Floors',
+    totalFloors: 4,
+    description: 'Executive business school and design architecture wing with Harvard-style tiered lecture halls, financial Bloomberg trading terminal room, moot court hall, and architectural drafting studios.',
+    imageUrl: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1000&q=80',
+    thumbnailUrl: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=400&q=80',
+    mapX: 65,
+    mapY: 48,
+    blockTag: 'Block E',
+    blockCode: 'E',
+    contactPerson: 'Dr. Anita Sharma, Director of Management',
+    phoneExtension: 'Ext. 2500',
+    facilities: [
+      {
+        id: 'e1',
+        name: 'Bloomberg Financial Trading Lab',
+        room: 'Room 104 • Level 1',
+        level: 'Level 1',
+        iconName: 'Activity',
+        description: 'Live global market tickers, equity analytics terminals, and algorithmic trading simulators.'
+      },
+      {
+        id: 'e2',
+        name: 'Architectural Drafting & Model Studio',
+        room: 'Room 208 • Level 2',
+        level: 'Level 2',
+        iconName: 'Cpu',
+        description: 'Precision drawing tables, 3D architectural foam cutters, and laser engraving units.'
+      },
+      {
+        id: 'e3',
+        name: 'Executive Case Study Amphitheater',
+        room: 'Ground Floor • Hall E-01',
+        level: 'Ground Floor',
+        iconName: 'BookOpen',
+        description: 'Acoustic tiered seating with interactive polling monitors and dual 4K laser projection.'
       }
     ]
   },
